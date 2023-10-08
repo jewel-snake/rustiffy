@@ -6,3 +6,5 @@ This is a project grown out of curiosity in Rust and Zig. The idea is to make Zi
 The name `rustiffy` is a combination of `rust` and `FFI`.
 <br>
 The counterpart, `zigiffy` also exists: [zigiffy](https://github.com/DutchGhost/zigiffy)
+<br>
+updated for zig version 0.11.0
