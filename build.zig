@@ -6,10 +6,10 @@ pub fn build(b: *Builder) !void {
     // means any target is allowed, and the default is native. Other options
     // for restricting supported target set are available.
     const target = b.standardTargetOptions(.{});
-
+    //const top = b.step("run cargo", "");
     // Standard release options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
-    const mode = b.standardReleaseOptions();
+    const mode = b.standardOptimizeOption(.{});
 
     // Build the rust library, always
     const rustbuild = b.addSystemCommand(&[_][]const u8{
@@ -19,21 +19,26 @@ pub fn build(b: *Builder) !void {
         "--manifest-path",
         "rust/Cargo.toml",
     });
-    try rustbuild.step.make();
+    //try rustbuild.step.make();
+    //top.dependOn(&rustbuild.step);
 
-    const exe = b.addExecutable("rustiffy", "src/main.zig");
-    exe.setTarget(target);
-    exe.setBuildMode(mode);
+    const exe = b.addExecutable(.{ .name = "rustiffy", .root_source_file = .{ .path = "src/main.zig" } });
+    //now target is set as attribute
+    exe.target = target;
+    //now optimization mode is set as attribute
+    exe.optimize = mode;
 
     // Link to the rust library.
-    exe.addLibPath("./rust/target/release");
+    // changed method name
+    exe.addLibraryPath(.{ .path = "./rust/target/release" });
     exe.linkSystemLibrary("rust");
 
-    exe.install();
-
-    const run_cmd = exe.run();
+    // install() deprecated, use addInstallArtifact
+    const run_cmd = b.addInstallArtifact(exe, .{});
     run_cmd.step.dependOn(b.getInstallStep());
 
     const run_step = b.step("run", "Run the app");
+    // hooking all steps to top-level step
+    run_step.dependOn(&rustbuild.step);
     run_step.dependOn(&run_cmd.step);
 }
